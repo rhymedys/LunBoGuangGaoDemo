@@ -2,6 +2,7 @@ package com.example.lunboguanggao;
 
 import java.util.ArrayList;
 
+import android.R.integer;
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.view.View;
@@ -12,6 +13,7 @@ public class MyViewPagerAdapter extends PagerAdapter {
 
 	private ArrayList<ImageView> imageViews;
 	private Context context;
+	private int newPosition;
 
 	public MyViewPagerAdapter(Context context, ArrayList<ImageView> imageViews) {
 		this.context = context;
@@ -20,8 +22,8 @@ public class MyViewPagerAdapter extends PagerAdapter {
 
 	@Override
 	public int getCount() {
-		// TODO 自动生成的方法存根
-		return imageViews.size();
+		// 夹无限循环
+		return Integer.MAX_VALUE;
 	}
 
 	@Override
@@ -33,7 +35,7 @@ public class MyViewPagerAdapter extends PagerAdapter {
 
 	@Override
 	public void destroyItem(ViewGroup container, int position, Object object) {
-		// TODO 自动生成的方法存根
+
 		container.removeView((View) object);
 	}
 
@@ -48,7 +50,9 @@ public class MyViewPagerAdapter extends PagerAdapter {
 	@Override
 	public Object instantiateItem(ViewGroup container, int position) {
 		// container 容器：ViewPager
-		ImageView imageView = imageViews.get(position);
+		newPosition = position % imageViews.size();
+
+		ImageView imageView = imageViews.get(newPosition);
 		container.addView(imageView);
 		return imageView;
 	}

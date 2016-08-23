@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera.Parameters;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.Menu;
@@ -30,6 +32,22 @@ public class MainActivity extends Activity {
 	private int position;
 	private TextView tv_description;
 	private View pointView;
+	private int previousSelectedPosition = 0;
+	/**
+	 * 界面可见  可以自动 论循环
+	 */
+	boolean inVisible = true;
+
+	private Handler handler = new Handler() {
+
+		@Override
+		public void handleMessage(Message msg) {
+
+			super.handleMessage(msg);
+			viewPager.setCurrentItem(1 + viewPager.getCurrentItem());
+		}
+
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -43,9 +61,32 @@ public class MainActivity extends Activity {
 	}
 
 	private void initAdapter() {
-		ll_point_container.getChildAt(0).setEnabled(true);
 		myViewPagerAdapter = new MyViewPagerAdapter(context, imageViews);
 		viewPager.setAdapter(myViewPagerAdapter);
+		ll_point_container.getChildAt(0).setEnabled(true);
+		tv_description.setText(des[0]);
+
+		// 设置在 总数中间开始，以便左右循环
+		int item = 5000000 / imageViews.size();
+		viewPager.setCurrentItem(item);
+		
+		if (inVisible) {
+			new Thread(new Runnable() {
+				public void run() {
+					while (true) {
+						try {
+							Thread.sleep(2000);
+
+						} catch (InterruptedException e) {
+
+							e.printStackTrace();
+						}
+						handler.sendEmptyMessage(0);
+
+					}
+				}
+			}).start();
+		}
 
 	}
 
@@ -68,50 +109,62 @@ public class MainActivity extends Activity {
 			pointView = new View(context);
 			pointView.setBackgroundResource(R.drawable.selector_bg_point);
 
-			
 			if (i != 0) {
-				params.leftMargin = 10;
+				params.rightMargin = 5;
 			}
 			pointView.setEnabled(false);
-			
-			//设置参数
+
+			// 设置参数
 			params = new LinearLayout.LayoutParams(5, 5);
 			ll_point_container.addView(pointView, params);
-			
+
 		}
-		
+
 		viewPager.addOnPageChangeListener(new OnPageChangeListener() {
-			
+
 			@Override
-			public void onPageSelected(int arg0) {
-				// TODO 自动生成的方法存根
-				tv_description.setText(des[arg0]);
-				for(int i = 0; i < ll_point_container.getChildCount(); i++){
-//					View childAt=ll_point_container.getChildAt(arg0);
-//					childAt.setEnabled(arg0==i);
+			public void onPageSelected(int position) {
+				// 取余获得位置
+				int newPosition = position % imageViews.size();
+				tv_description.setText(des[newPosition]);
+				for (int i = 0; i < ll_point_container.getChildCount(); i++) {
+
+					// 设置文本
+					tv_description.setText(des[newPosition]);
+
+					// 设置小白点
+					ll_point_container.getChildAt(previousSelectedPosition).setEnabled(false);
+					ll_point_container.getChildAt(newPosition).setEnabled(true);
+
+					// 记录之前的位置
+					previousSelectedPosition = newPosition;
 				}
 			}
-			
+
 			@Override
 			public void onPageScrolled(int arg0, float arg1, int arg2) {
-				// TODO 自动生成的方法存根
-				
+
 			}
-			
+
 			@Override
 			public void onPageScrollStateChanged(int arg0) {
-				// TODO 自动生成的方法存根
-				
+
 			}
 		});
-	
 
 	}
 
 	private void initUI() {
-		// TODO 自动生成的方法存根
+
 		viewPager = (ViewPager) findViewById(R.id.view_pager);
 		tv_description = (TextView) findViewById(R.id.tv_description);
 
+	}
+
+	@Override
+	protected void onDestroy() {
+
+		inVisible = !inVisible;
+		super.onDestroy();
 	}
 }
